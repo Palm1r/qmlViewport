@@ -13,11 +13,12 @@ public:
   QOffscreenSurface *surface;
   QOpenGLContext *context;
 
-  void bgfxInit();
+  QSize _size;
 
 public slots:
   void renderNext();
   void shutDown();
+  void resizeBuffers(QSize size);
 
 signals:
   void textureReady(int id, const QSize &size);
@@ -26,6 +27,6 @@ private:
   QOpenGLFramebufferObject *_renderFbo;
   QOpenGLFramebufferObject *_displayFbo;
 
-  QSize _size;
-  int _texture;
+  QOpenGLFramebufferObjectFormat _multiSampleFormat;
+  QOpenGLFramebufferObjectFormat _displayFormat;
 };

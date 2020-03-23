@@ -62,3 +62,9 @@ QSGNode *ViewportItem::updatePaintNode(QSGNode *oldNode,
 
   return node;
 }
+
+void ViewportItem::geometryChanged(const QRectF &newGeometry, const QRectF) {
+  QMetaObject::invokeMethod(
+      _renderThread, "resizeBuffers", Qt::QueuedConnection,
+      Q_ARG(QSize, QSize(newGeometry.width(), newGeometry.height())));
+}

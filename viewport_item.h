@@ -20,4 +20,9 @@ protected:
 
 private:
   RenderThread *_renderThread;
+
+  // QQuickItem interface
+protected:
+  void geometryChanged(const QRectF &newGeometry,
+                       const QRectF /*&oldGeometry*/);
 };
