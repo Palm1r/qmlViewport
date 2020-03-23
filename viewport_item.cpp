@@ -30,7 +30,7 @@ QSGNode *ViewportItem::updatePaintNode(QSGNode *oldNode,
     QOpenGLContext *current = window()->openglContext();
     current->doneCurrent();
 
-    _renderThread->context = new QOpenGLContext();
+    _renderThread->context = std::make_shared<QOpenGLContext>();
     _renderThread->context->setFormat(current->format());
     _renderThread->context->setShareContext(current);
     _renderThread->context->create();

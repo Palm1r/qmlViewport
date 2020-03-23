@@ -12,7 +12,7 @@ public:
   RenderThread(const QSize &size);
 
   QOffscreenSurface *surface;
-  QOpenGLContext *context;
+  std::shared_ptr<QOpenGLContext> context;
 
   QSize _size;
 

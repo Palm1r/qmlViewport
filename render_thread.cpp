@@ -51,7 +51,7 @@ void RenderThread::shutDown() {
   _renderFbo.reset();
   _displayFbo.reset();
   context->doneCurrent();
-  delete context;
+  context.reset();
 
   surface->deleteLater();
 
