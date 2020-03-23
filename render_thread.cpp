@@ -20,8 +20,10 @@ void RenderThread::renderNext() {
   context->makeCurrent(surface);
 
   if (_renderFbo == nullptr || _renderFbo->size() != _size) {
-    _renderFbo = new QOpenGLFramebufferObject(_size, _multiSampleFormat);
-    _displayFbo = new QOpenGLFramebufferObject(_size, _displayFormat);
+    _renderFbo =
+        std::make_unique<QOpenGLFramebufferObject>(_size, _multiSampleFormat);
+    _displayFbo =
+        std::make_unique<QOpenGLFramebufferObject>(_size, _displayFormat);
   }
 
   _renderFbo->bind();
@@ -34,7 +36,7 @@ void RenderThread::renderNext() {
   oglFunctions->glClear(GL_COLOR_BUFFER_BIT);
   oglFunctions->glClear(GL_DEPTH_BUFFER_BIT);
 
-  QOpenGLFramebufferObject::blitFramebuffer(_displayFbo, _renderFbo,
+  QOpenGLFramebufferObject::blitFramebuffer(_displayFbo.get(), _renderFbo.get(),
                                             GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
   oglFunctions->glFlush();
@@ -46,8 +48,8 @@ void RenderThread::renderNext() {
 
 void RenderThread::shutDown() {
   context->makeCurrent(surface);
-  delete _renderFbo;
-  delete _displayFbo;
+  _renderFbo.reset();
+  _displayFbo.reset();
   context->doneCurrent();
   delete context;
 
@@ -57,7 +59,4 @@ void RenderThread::shutDown() {
   moveToThread(QGuiApplication::instance()->thread());
 }
 
-void RenderThread::resizeBuffers(QSize size) {
-  _size = size;
-  qDebug() << "new size" << _size;
-}
+void RenderThread::resizeBuffers(QSize size) { _size = size; }

@@ -4,6 +4,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 #include <QThread>
+#include <memory.h>
 
 class RenderThread : public QThread {
   Q_OBJECT
@@ -24,8 +25,8 @@ signals:
   void textureReady(int id, const QSize &size);
 
 private:
-  QOpenGLFramebufferObject *_renderFbo;
-  QOpenGLFramebufferObject *_displayFbo;
+  std::unique_ptr<QOpenGLFramebufferObject> _renderFbo;
+  std::unique_ptr<QOpenGLFramebufferObject> _displayFbo;
 
   QOpenGLFramebufferObjectFormat _multiSampleFormat;
   QOpenGLFramebufferObjectFormat _displayFormat;

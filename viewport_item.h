@@ -16,13 +16,11 @@ public slots:
   void ready();
 
 protected:
-  QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *);
+  QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
+
+  void geometryChanged(const QRectF &newGeometry,
+                       const QRectF &oldGeometry) override;
 
 private:
   RenderThread *_renderThread;
-
-  // QQuickItem interface
-protected:
-  void geometryChanged(const QRectF &newGeometry,
-                       const QRectF &oldGeometry) override;
 };
