@@ -57,4 +57,7 @@ void RenderThread::shutDown() {
   moveToThread(QGuiApplication::instance()->thread());
 }
 
-void RenderThread::resizeBuffers(QSize size) { _size = size; }
+void RenderThread::resizeBuffers(QSize size) {
+  _size = size;
+  qDebug() << "new size" << _size;
+}

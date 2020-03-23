@@ -24,5 +24,5 @@ private:
   // QQuickItem interface
 protected:
   void geometryChanged(const QRectF &newGeometry,
-                       const QRectF /*&oldGeometry*/);
+                       const QRectF &oldGeometry) override;
 };
