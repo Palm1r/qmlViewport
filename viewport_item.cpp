@@ -26,7 +26,7 @@ QSGNode *ViewportItem::updatePaintNode(QSGNode *oldNode,
                                        QQuickItem::UpdatePaintNodeData *) {
   if (width() <= 0 || height() <= 0) {
     delete oldNode;
-    return 0;
+    return nullptr;
   }
   _renderThread->_size = QSize(width(), height());
 
@@ -67,12 +67,4 @@ QSGNode *ViewportItem::updatePaintNode(QSGNode *oldNode,
   node->setRect(boundingRect());
 
   return node;
-}
-
-void ViewportItem::geometryChanged(const QRectF &newGeometry,
-                                   const QRectF &oldGeometry) {
-  Q_UNUSED(oldGeometry)
-  QMetaObject::invokeMethod(
-      _renderThread, "resizeBuffers", Qt::QueuedConnection,
-      Q_ARG(QSize, QSize(newGeometry.width(), newGeometry.height())));
 }
