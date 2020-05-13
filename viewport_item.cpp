@@ -24,6 +24,12 @@ void ViewportItem::ready() {
 
 QSGNode *ViewportItem::updatePaintNode(QSGNode *oldNode,
                                        QQuickItem::UpdatePaintNodeData *) {
+  if (width() <= 0 || height() <= 0) {
+    delete oldNode;
+    return 0;
+  }
+  _renderThread->_size = QSize(width(), height());
+
   TextureNode *node = static_cast<TextureNode *>(oldNode);
 
   if (!_renderThread->context) {
