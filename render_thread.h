@@ -19,7 +19,6 @@ public:
 public slots:
   void renderNext();
   void shutDown();
-  void resizeBuffers(QSize size);
 
 signals:
   void textureReady(int id, const QSize &size);

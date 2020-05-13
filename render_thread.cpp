@@ -5,8 +5,8 @@
 #include <QOpenGLFunctions>
 
 RenderThread::RenderThread(const QSize &size)
-    : surface(nullptr), context(nullptr), _renderFbo(nullptr),
-      _displayFbo(nullptr), _size(size) {
+    : surface(nullptr), context(nullptr), _size(size), _renderFbo(nullptr),
+      _displayFbo(nullptr) {
   _multiSampleFormat.setAttachment(
       QOpenGLFramebufferObject::CombinedDepthStencil);
   _multiSampleFormat.setMipmap(true);
