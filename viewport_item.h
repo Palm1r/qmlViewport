@@ -5,19 +5,19 @@
 class RenderThread;
 
 class ViewportItem : public QQuickItem {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  ViewportItem();
+    ViewportItem();
 
 signals:
 
 public slots:
-  void ready();
+    void ready();
 
 protected:
-  QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
+    QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
 
 private:
-  RenderThread *_renderThread;
+    RenderThread *_renderThread;
 };

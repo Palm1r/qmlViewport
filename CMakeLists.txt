@@ -24,8 +24,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    endif()
 #endif()
 
-find_package(Qt5 COMPONENTS Core Quick REQUIRED)
-
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick OpenGL REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick OpenGL REQUIRED)
 
 add_executable(qmlViewport
         main.cpp
@@ -38,6 +38,6 @@ add_executable(qmlViewport
         texture_node.cpp)
 
 target_compile_definitions(qmlViewport
-  PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
-target_link_libraries(qmlViewport
-  PRIVATE Qt5::Core Qt5::Quick)
+    PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
+  target_link_libraries(qmlViewport
+    PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::OpenGL)

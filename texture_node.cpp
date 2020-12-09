@@ -6,7 +6,15 @@ TextureNode::TextureNode(QQuickWindow *window)
     , _texture(nullptr)
     , _window(window)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    _texture = QNativeInterface::QSGOpenGLTexture::fromNative(_id, _window, QSize(1, 1), QQuickWindow::TextureHasAlphaChannel);
+#elif QT_VERSION > QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    _texture = _window->createTextureFromNativeObject(QQuickWindow::NativeObjectTexture, &_id, 0,
+                                                      QSize(1, 1), QQuickWindow::TextureHasAlphaChannel);
+#else
     _texture = _window->createTextureFromId(0, QSize(1, 1));
+#endif
+
     setTexture(_texture);
     setFiltering(QSGTexture::Linear);
 }
@@ -34,11 +42,17 @@ void TextureNode::prepareNode() {
     if (newId) {
         delete _texture;
 
-        _texture = _window->createTextureFromId(newId, size);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    _texture = QNativeInterface::QSGOpenGLTexture::fromNative(newId, _window, size, QQuickWindow::TextureHasAlphaChannel);
+#elif QT_VERSION > QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    _texture = _window->createTextureFromNativeObject(QQuickWindow::NativeObjectTexture, &newId, 0,
+                                                      size, QQuickWindow::TextureHasAlphaChannel);
+#else
+    _texture = _window->createTextureFromId(newId, size);
+#endif
         setTexture(_texture);
 
         markDirty(DirtyMaterial);
-
         emit textureInUse();
     }
 }

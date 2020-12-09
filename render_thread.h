@@ -7,26 +7,26 @@
 #include <memory.h>
 
 class RenderThread : public QThread {
-  Q_OBJECT
+    Q_OBJECT
 public:
-  RenderThread(const QSize &size);
+    RenderThread(const QSize &size);
 
-  QOffscreenSurface *surface;
-  std::shared_ptr<QOpenGLContext> context;
+    QOffscreenSurface *surface;
+    std::shared_ptr<QOpenGLContext> context;
 
-  QSize _size;
+    QSize _size;
 
 public slots:
-  void renderNext();
-  void shutDown();
+    void renderNext();
+    void shutDown();
 
 signals:
-  void textureReady(int id, const QSize &size);
+    void textureReady(int id, const QSize &size);
 
 private:
-  std::unique_ptr<QOpenGLFramebufferObject> _renderFbo;
-  std::unique_ptr<QOpenGLFramebufferObject> _displayFbo;
+    std::unique_ptr<QOpenGLFramebufferObject> _renderFbo;
+    std::unique_ptr<QOpenGLFramebufferObject> _displayFbo;
 
-  QOpenGLFramebufferObjectFormat _multiSampleFormat;
-  QOpenGLFramebufferObjectFormat _displayFormat;
+    QOpenGLFramebufferObjectFormat _multiSampleFormat;
+    QOpenGLFramebufferObjectFormat _displayFormat;
 };
