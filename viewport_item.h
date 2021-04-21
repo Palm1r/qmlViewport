@@ -2,22 +2,21 @@
 
 #include <QQuickItem>
 
-class RenderThread;
-
+class QOffscreenSurface;
 class ViewportItem : public QQuickItem {
     Q_OBJECT
 
 public:
     ViewportItem();
 
-signals:
-
-public slots:
-    void ready();
-
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
 
+    // QQuickItem interface
+protected:
+    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
+
 private:
-    RenderThread *_renderThread;
+    QOffscreenSurface *m_surface;
+
 };

@@ -1,28 +1,35 @@
 #pragma once
 
-#include <qsgsimpletexturenode.h>
-#include <QMutex>
-#include <QQuickWindow>
+#include <QSGSimpleTextureNode>
+#include <QSGTextureProvider>
+#include <QQuickItem>
+#include <QOpenGLFramebufferObject>
+#include <QOffscreenSurface>
 
-class TextureNode : public QObject, public QSGSimpleTextureNode
+class TextureNode : public QSGTextureProvider, public QSGSimpleTextureNode
 {
     Q_OBJECT
 public:
-    TextureNode(QQuickWindow *window);
-    ~TextureNode() override;
+    TextureNode(QQuickItem *item);
+    ~TextureNode() override = default;
 
-signals:
-    void textureInUse();
-    void pendingNewTexture();
+    QOffscreenSurface *surface;
+    QOpenGLContext* context;
 
-public slots:
-    void newTexture(int id, const QSize &size);
-    void prepareNode();
+    QSGTexture *texture() const override;
+
+    void sync();
 
 private:
-    int _id;
-    QSize _size;
-    QMutex _mutex;
-    QSGTexture *_texture;
-    QQuickWindow *_window;
+    QQuickItem *m_item;
+    QQuickWindow *m_window;
+    QSizeF m_size;
+    qreal m_dpr;
+
+    std::unique_ptr<QOpenGLFramebufferObject> _renderFbo;
+    std::unique_ptr<QOpenGLFramebufferObject> _displayFbo;
+
+    QOpenGLFramebufferObjectFormat _multiSampleFormat;
+    QOpenGLFramebufferObjectFormat _displayFormat;
+    GLuint m_texture;
 };

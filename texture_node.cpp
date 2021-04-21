@@ -1,58 +1,77 @@
 #include "texture_node.h"
 
-TextureNode::TextureNode(QQuickWindow *window)
-    : _id(0)
-    , _size(0, 0)
-    , _texture(nullptr)
-    , _window(window)
+#include <QQuickWindow>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
+#include <QOpenGLFunctions_4_3_Compatibility>
+
+TextureNode::TextureNode(QQuickItem *item) : m_item(item)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    _texture = QNativeInterface::QSGOpenGLTexture::fromNative(_id, _window, QSize(1, 1), QQuickWindow::TextureHasAlphaChannel);
-#elif QT_VERSION > QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    _texture = _window->createTextureFromNativeObject(QQuickWindow::NativeObjectTexture, &_id, 0,
-                                                      QSize(1, 1), QQuickWindow::TextureHasAlphaChannel);
-#else
-    _texture = _window->createTextureFromId(0, QSize(1, 1));
-#endif
-
-    setTexture(_texture);
-    setFiltering(QSGTexture::Linear);
+     m_window = m_item->window();
 }
 
-TextureNode::~TextureNode()
+QSGTexture *TextureNode::texture() const
 {
-    delete _texture;
+    return QSGSimpleTextureNode::texture();
 }
 
-void TextureNode::newTexture(int id, const QSize &size) {
-    _mutex.lock();
-    _id = id;
-    _size = size;
-    _mutex.unlock();
+void TextureNode::sync()
+{
+    context = QOpenGLContext::currentContext();
+    context->makeCurrent(surface);
 
-    emit pendingNewTexture();
-}
+    m_dpr = m_window->effectiveDevicePixelRatio();
+    const auto newSize = (rect().size() * m_dpr).toSize();
 
-void TextureNode::prepareNode() {
-    _mutex.lock();
-    int newId = _id;
-    QSize size = _size;
-    _id = 0;
-    _mutex.unlock();
-    if (newId) {
-        delete _texture;
+    if (!texture() || (newSize != m_size)) {
+        m_size = newSize;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    _texture = QNativeInterface::QSGOpenGLTexture::fromNative(newId, _window, size, QQuickWindow::TextureHasAlphaChannel);
-#elif QT_VERSION > QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    _texture = _window->createTextureFromNativeObject(QQuickWindow::NativeObjectTexture, &newId, 0,
-                                                      size, QQuickWindow::TextureHasAlphaChannel);
-#else
-    _texture = _window->createTextureFromId(newId, size);
-#endif
-        setTexture(_texture);
-
-        markDirty(DirtyMaterial);
-        emit textureInUse();
+        _renderFbo =
+                std::make_unique<QOpenGLFramebufferObject>(newSize, _multiSampleFormat);
+        _displayFbo =
+                std::make_unique<QOpenGLFramebufferObject>(newSize, _displayFormat);
     }
+    _renderFbo->bind();
+
+//    auto oglFunctions = context->functions();
+    auto oglFunctions = context->versionFunctions<QOpenGLFunctions_4_3_Compatibility>();
+    oglFunctions->initializeOpenGLFunctions();
+
+
+    // render
+    oglFunctions->glViewport(0, 0, m_size.width(), m_size.height());
+    oglFunctions->glClearColor(0.8f, 0.0f, 0.0f, 1.0f);
+    oglFunctions->glClear(GL_COLOR_BUFFER_BIT);
+    oglFunctions->glClear(GL_DEPTH_BUFFER_BIT);
+
+    oglFunctions->glLoadIdentity();
+    oglFunctions->glBegin(GL_TRIANGLES);
+    oglFunctions->glTranslatef(-1.5f,0.0f,-6.0f);
+    oglFunctions->glVertex3f( 0.0f, 1.0f, 0.0f);  // Вверх
+    oglFunctions->glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева снизу
+    oglFunctions->glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа снизу
+    oglFunctions->glEnd();
+
+    QOpenGLFramebufferObject::blitFramebuffer(_displayFbo.get(), _renderFbo.get(),
+                                              GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    oglFunctions->glFlush();
+
+    _renderFbo->bindDefault();
+
+    m_texture = _displayFbo->texture();
+
+    QSGTexture* qsgtexture{nullptr};
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    qsgtexture = QNativeInterface::QSGOpenGLTexture::fromNative(m_texture, m_window,  m_size.toSize(), QQuickWindow::TextureHasAlphaChannel);
+#elif QT_VERSION > QT_VERSION_CHECK(5, 15, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    qsgtexture = m_window->createTextureFromNativeObject(QQuickWindow::NativeObjectTexture, &m_texture, 0,
+                                                       m_size.toSize(), QQuickWindow::TextureHasAlphaChannel);
+#else
+    qsgtexture = m_window->createTextureFromId(m_texture,  m_size.toSize());
+#endif
+
+    setTexture(qsgtexture);
 }
+
