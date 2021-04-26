@@ -4,10 +4,21 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_4_3_Compatibility>
+#include <QDebug>
 
 TextureNode::TextureNode(QQuickItem *item) : m_item(item)
 {
      m_window = m_item->window();
+     m_dpr = m_window->effectiveDevicePixelRatio();
+     context = QOpenGLContext::currentContext();
+
+     _multiSampleFormat.setAttachment(
+                 QOpenGLFramebufferObject::CombinedDepthStencil);
+     _multiSampleFormat.setMipmap(true);
+     _multiSampleFormat.setSamples(8);
+
+     _displayFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+     _displayFormat.setMipmap(true);
 }
 
 QSGTexture *TextureNode::texture() const
@@ -17,13 +28,8 @@ QSGTexture *TextureNode::texture() const
 
 void TextureNode::sync()
 {
-    context = QOpenGLContext::currentContext();
-    context->makeCurrent(surface);
-
-    m_dpr = m_window->effectiveDevicePixelRatio();
-    const auto newSize = (rect().size() * m_dpr).toSize();
-
-    if (!texture() || (newSize != m_size)) {
+    if (!texture()) {
+        const auto newSize = (rect().size() * m_dpr).toSize();
         m_size = newSize;
 
         _renderFbo =
@@ -31,12 +37,36 @@ void TextureNode::sync()
         _displayFbo =
                 std::make_unique<QOpenGLFramebufferObject>(newSize, _displayFormat);
     }
-    _renderFbo->bind();
+}
 
-//    auto oglFunctions = context->functions();
+void TextureNode::init()
+{
+//    qDebug() << "init";
+
+    context->makeCurrent(surface);
+
+    const auto newSize = (rect().size() * m_dpr).toSize();
+    if (newSize != m_size) {
+        m_size = newSize;
+
+        qDebug() << "resize";
+
+        _renderFbo =
+                std::make_unique<QOpenGLFramebufferObject>(newSize, _multiSampleFormat);
+        _displayFbo =
+                std::make_unique<QOpenGLFramebufferObject>(newSize, _displayFormat);
+    }
+}
+
+void TextureNode::paint()
+{
+//    qDebug() << "paint";
+    m_window->beginExternalCommands();
+
     auto oglFunctions = context->versionFunctions<QOpenGLFunctions_4_3_Compatibility>();
     oglFunctions->initializeOpenGLFunctions();
 
+    _renderFbo->bind();
 
     // render
     oglFunctions->glViewport(0, 0, m_size.width(), m_size.height());
@@ -73,5 +103,8 @@ void TextureNode::sync()
 #endif
 
     setTexture(qsgtexture);
+
+    m_window->resetOpenGLState();
+    m_window->endExternalCommands();
 }
 

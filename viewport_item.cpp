@@ -1,6 +1,9 @@
 #include "viewport_item.h"
 
 #include <QGuiApplication>
+#include <QQuickWindow>
+#include <QDebug>
+
 #include <texture_node.h>
 
 ViewportItem::ViewportItem() {
@@ -8,6 +11,25 @@ ViewportItem::ViewportItem() {
 
     m_surface = new QOffscreenSurface();
     m_surface->create();
+
+//    connect(this, &QQuickItem::windowChanged, this, &ViewportItem::handleWindowChanged);
+}
+
+void ViewportItem::handleWindowChanged(QQuickWindow *win)
+{
+//    if (win) {
+//        connect(window(), &QQuickWindow::beforeSynchronizing, this, &ViewportItem::sync, Qt::DirectConnection);
+//    }
+}
+
+void ViewportItem::sync()
+{
+    qDebug() << "sync";
+
+    if (window()) {
+//    connect(window(), &QQuickWindow::beforeRendering, m_renderer, &SquircleRenderer::init, Qt::DirectConnection);
+//    connect(window(), &QQuickWindow::beforeRenderPassRecording, m_renderer, &SquircleRenderer::paint, Qt::DirectConnection);
+    }
 }
 
 QSGNode *ViewportItem::updatePaintNode(QSGNode *oldNode,
@@ -28,11 +50,14 @@ QSGNode *ViewportItem::updatePaintNode(QSGNode *oldNode,
         node->setRect(boundingRect());
         node->surface = m_surface;
         node->sync();
+        node->paint();
         node->setTextureCoordinatesTransform(QSGSimpleTextureNode::NoTransform);
         node->setFiltering(QSGTexture::Linear);
     }
-
-    update();
+    if (window()) {
+        connect(window(), &QQuickWindow::beforeRendering, node, &TextureNode::init, Qt::QueuedConnection);
+        connect(window(), &QQuickWindow::beforeRenderPassRecording, node, &TextureNode::paint, Qt::QueuedConnection);
+    }
 
     return node;
 }

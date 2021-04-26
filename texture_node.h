@@ -18,6 +18,10 @@ public:
 
     QSGTexture *texture() const override;
 
+
+public slots:
+    void init();
+    void paint();
     void sync();
 
 private:

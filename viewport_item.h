@@ -9,6 +9,10 @@ class ViewportItem : public QQuickItem {
 public:
     ViewportItem();
 
+public slots:
+    void handleWindowChanged(QQuickWindow *win);
+    void sync();
+
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
 
